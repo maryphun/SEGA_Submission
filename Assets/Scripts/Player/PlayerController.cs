@@ -3,25 +3,28 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Animations;
 
+[RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
     [Header("Setting")]
     [SerializeField] private float _moveSpeed = 1.0f;
 
-    [Header("AnimationClipReferences")]
-    [SerializeField] private AnimationClip _anim_idle;
-    [SerializeField] private AnimationClip _anim_moveForward;
-
     [Header("Debug")]
     [SerializeField] private Vector2 _moveDir = Vector2.zero;
+    [SerializeField] private Vector2 _lastMousePosition = Vector2.zero;
+    [SerializeField] private Vector3 _animationMoveDir = Vector2.zero;
     [SerializeField] private Animator _animator;
+
+    [SerializeField] public bool IsGrounded { get; private set; }
 
 
     // Start is called before the first frame update
     void Start()
     {
         _animator = GetComponent<Animator>();
-        Debug.Assert(_animator == null);
+        Debug.Assert(_animator != null);
+
+        IsGrounded = true;
     }
 
     // Update is called once per frame
@@ -41,17 +44,8 @@ public class PlayerController : MonoBehaviour
         }
 
         // アニメーション関連
-        if (originPos == newPos)
-        {
-            _animator.Play("N_idle");
-        }
-        else if (_moveDir.y > 0) // 前に前進
-        {
-            _animator.Play("walk_strafe_front");
-        }
-        else if (_moveDir.y < 0)
-        {
-            _animator.Play("walk_strafe_back");
-        }
+        _animationMoveDir = Vector3.MoveTowards(_animationMoveDir, moveVector, 5.0f * Time.deltaTime);
+        _animator.SetFloat("Vertical", _animationMoveDir.z);
+        _animator.SetFloat("Horizontal", _animationMoveDir.x);
     }
 }
